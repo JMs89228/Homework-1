@@ -14,11 +14,9 @@ interface IERC20 {
 }
 
 contract LiaoToken is IERC20 {
-    // TODO: you might need to declare several state variable here
-    mapping(address => uint256) private _balances;
+    mapping(address account => uint256) private _balances;
+    mapping(address => bool) isClaim;
     mapping(address => mapping(address => uint256)) private _allowances;
-    mapping(address => bool) private _isClaimed;
-
     uint256 private _totalSupply;
 
     string private _name;
@@ -26,7 +24,7 @@ contract LiaoToken is IERC20 {
 
     event Claim(address indexed user, uint256 indexed amount);
 
-    constructor(string memory name_, string memory symbol_) payable {
+    constructor(string memory name_, string memory symbol_) {
         _name = name_;
         _symbol = symbol_;
     }
@@ -51,18 +49,17 @@ contract LiaoToken is IERC20 {
         return _balances[account];
     }
 
-    function claim() external returns (bool) {
-        if (isClaim[msg.sender]) revert();
-        _balances[msg.sender] += 1 ether;
+    function claim() public returns (bool) {
+        require(isClaim[msg.sender] == false, "Already claimed");
+        _balances[msg.sender] = 1 ether;
         _totalSupply += 1 ether;
         emit Claim(msg.sender, 1 ether);
         return true;
     }
 
-    function transfer(address to, uint256 amount) external returns (bool) {
-        // TODO: please add your implementaiton here
-        require(to != address(0), "ERC20: transfer to the zero address");
-        require(_balances[msg.sender] >= amount, "ERC20: transfer amount exceeds balance");
+    function transfer(address to, uint256 amount) public override returns (bool) {
+        require(to != address(0), "Transfer to the zero address");
+        require(_balances[msg.sender] >= amount, "Transfer amount exceeds balance");
 
         _balances[msg.sender] -= amount;
         _balances[to] += amount;
@@ -70,30 +67,27 @@ contract LiaoToken is IERC20 {
         return true;
     }
 
-    function transferFrom(address from, address to, uint256 value) external returns (bool) {
-        // TODO: please add your implementaiton here
-        require(to != address(0), "ERC20: transfer to the zero address");
-        require(_balances[from] >= value, "ERC20: transfer amount exceeds balance");
-        require(_allowances[from][msg.sender] >= value, "ERC20: transfer amount exceeds allowance");
+    function transferFrom(address from, address to, uint256 amount) public override returns (bool) {
+        require(to != address(0), "Transfer to the zero address");
+        require(_balances[from] >= amount, "Transfer amount exceeds balance");
+        require(_allowances[from][msg.sender] >= amount, "Transfer amount exceeds allowance");
 
-        _balances[from] -= value;
-        _balances[to] += value;
-        _allowances[from][msg.sender] -= value;
-        emit Transfer(from, to, value);
+        _balances[from] -= amount;
+        _balances[to] += amount;
+        _allowances[from][msg.sender] -= amount;
+        emit Transfer(from, to, amount);
         return true;
     }
 
-    function approve(address spender, uint256 amount) external returns (bool) {
-        // TODO: please add your implementaiton here
-        require(spender != address(0), "ERC20: approve to the zero address");
+    function approve(address spender, uint256 amount) public override returns (bool) {
+        require(spender != address(0), "Approve to the zero address");
 
         _allowances[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
         return true;
     }
 
-    function allowance(address owner, address spender) public view returns (uint256) {
-        // TODO: please add your implementaiton here
+    function allowance(address owner, address spender) public view override returns (uint256) {
         return _allowances[owner][spender];
     }
 }
