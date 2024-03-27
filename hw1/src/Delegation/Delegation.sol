@@ -17,6 +17,10 @@ contract Attack {
     }
 
     // NOTE: You might need some malicious function here
+    function changeResult() public {
+        // 將 dataPosition 變數設置為 1
+        dataPosition = 1;
+    }
 
     function exploit() external {
         // TODO: Add your implementation here
